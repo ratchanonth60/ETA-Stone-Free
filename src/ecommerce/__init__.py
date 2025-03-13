@@ -1,0 +1,118 @@
+THIRD_PARTY = [
+    "widget_tweaks",
+    "haystack",
+    "treebeard",
+    "django_tables2",
+    "debug_toolbar",
+    "sorl.thumbnail",
+    "rest_framework",
+    "rest_framework.authtoken",
+    "easy_thumbnails",
+    # "rest_framework_simplejwt",
+    "drf_yasg",
+]
+
+DEBUG_TOOLBAR_EXTENTIONS = ["template_profiler_panel"]
+
+DJANGO_APPS = [
+    "django.contrib.admin",
+    "django.contrib.contenttypes",
+    "django.contrib.auth",
+    "django.contrib.sessions",
+    "django.contrib.messages",
+    "django.contrib.staticfiles",
+    "django.contrib.sites",
+    "django.contrib.flatpages",
+]
+
+API = [
+    "ecommerce.api.config.Api",
+    "ecommerce.api.basket.apps.BasketApi",
+    "ecommerce.api.catalogue.apps.CatalogueApi",
+    "ecommerce.api.users.apps.UsersApi",
+    "ecommerce.api.communication.apps.CommunicationApi",
+]
+
+APPS = [
+    "ecommerce.config.Shop",
+    "ecommerce.apps.users.apps.UserConfig",
+    "ecommerce.apps.analytics.apps.AnalyticsConfig",
+    "ecommerce.apps.checkout.apps.CheckoutConfig",
+    "ecommerce.apps.address.apps.AddressConfig",
+    "ecommerce.apps.shipping.apps.ShippingConfig",
+    "ecommerce.apps.catalogue.apps.CatalogueConfig",
+    "ecommerce.apps.catalogue.reviews.apps.CatalogueReviewsConfig",
+    "ecommerce.apps.communication.apps.CommunicationConfig",
+    "ecommerce.apps.partner.apps.PartnerConfig",
+    "ecommerce.apps.basket.apps.BasketConfig",
+    "ecommerce.apps.payment.apps.PaymentConfig",
+    "ecommerce.apps.offer.apps.OfferConfig",
+    "ecommerce.apps.order.apps.OrderConfig",
+    "ecommerce.apps.customer.apps.CustomerConfig",
+    "ecommerce.apps.search.apps.SearchConfig",
+    "ecommerce.apps.voucher.apps.VoucherConfig",
+    "ecommerce.apps.wishlists.apps.WishlistsConfig",
+    "ecommerce.apps.dashboard.apps.DashboardConfig",
+    "ecommerce.apps.dashboard.reports.apps.ReportsDashboardConfig",
+    "ecommerce.apps.dashboard.users.apps.UsersDashboardConfig",
+    "ecommerce.apps.dashboard.orders.apps.OrdersDashboardConfig",
+    "ecommerce.apps.dashboard.catalogue.apps.CatalogueDashboardConfig",
+    "ecommerce.apps.dashboard.offers.apps.OffersDashboardConfig",
+    "ecommerce.apps.dashboard.partners.apps.PartnersDashboardConfig",
+    "ecommerce.apps.dashboard.pages.apps.PagesDashboardConfig",
+    "ecommerce.apps.dashboard.ranges.apps.RangesDashboardConfig",
+    "ecommerce.apps.dashboard.reviews.apps.ReviewsDashboardConfig",
+    "ecommerce.apps.dashboard.vouchers.apps.VouchersDashboardConfig",
+    "ecommerce.apps.dashboard.communications.apps.CommunicationsDashboardConfig",
+    "ecommerce.apps.dashboard.shipping.apps.ShippingDashboardConfig",
+]
+
+OSCAR_APPS = [
+    # 'oscar',
+    # 'oscar.apps.analytics',
+    # 'oscar.apps.checkout',
+    # 'oscar.apps.address',
+    # 'oscar.apps.shipping',
+    # 'oscar.apps.catalogue',
+    # 'oscar.apps.catalogue.reviews',
+    # 'oscar.apps.partner',
+    # 'oscar.apps.basket',
+    # 'oscar.apps.payment',
+    # 'oscar.apps.offer',
+    # 'oscar.apps.order',
+    # 'oscar.apps.customer',
+    # 'oscar.apps.search',
+    # 'oscar.apps.voucher',
+    # 'oscar.apps.communication',
+    # 'oscar.apps.wishlists',
+    # 'oscar.apps.dashboard',
+    # 'oscar.apps.dashboard.reports',
+    # 'oscar.apps.dashboard.users',
+    # 'oscar.apps.dashboard.orders',
+    # 'oscar.apps.dashboard.catalogue',
+    # 'oscar.apps.dashboard.offers',
+    # 'oscar.apps.dashboard.partners',
+    # 'oscar.apps.dashboard.pages',
+    # 'oscar.apps.dashboard.ranges',
+    # 'oscar.apps.dashboard.reviews',
+    # 'oscar.apps.dashboard.vouchers',
+    # 'oscar.apps.dashboard.communications',
+    # 'oscar.apps.dashboard.shipping',
+]
+SHARED_APPS = [
+    "django_tenants",
+    "django_celery_beat",
+    "ecommerce.core.tenants",
+    "ecommerce.apps.users.apps.UserConfig",
+    # "django.contrib.admin",
+    "django.contrib.contenttypes",
+    "django.contrib.auth",
+    "django.contrib.sessions",
+    "django.contrib.messages",
+    "django.contrib.staticfiles",
+    "django.contrib.sites",
+]
+
+TENANT_APPS = list(DJANGO_APPS + APPS + API + THIRD_PARTY + DEBUG_TOOLBAR_EXTENTIONS)
+
+default_app_config = "ecommerce.config.Shop"

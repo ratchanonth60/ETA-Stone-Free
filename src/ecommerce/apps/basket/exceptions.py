@@ -1,0 +1,3 @@
+
+class InvalidBasketLineError(Exception):
+    pass

@@ -1,0 +1,42 @@
+image: docker:latest
+
+services:
+  - docker:dind
+
+stages:
+  - test
+  - build
+
+variables:
+  DOCKER_DRIVER: overlay2
+  DOCKER_HOST: tcp://docker:2375
+
+before_script:
+  - docker info
+  - apk add --no-cache make
+
+build:
+  stage: build
+  script:
+    - echo "Start build..."
+    - make build
+    - make login-docker 
+    - docker tag 336314182655.ap-southeast-2.compute.amazonaws.com/django-ec2:web $DOCKERHUB_USERNAME/django-ec2:web-latest
+    - docker tag 336314182655.ap-southeast-2.compute.amazonaws.com/django-ec2:nginx $DOCKERHUB_USERNAME/django-ec2:nginx-latest
+    - docker push $DOCKERHUB_USERNAME/django-ec2:web-latest
+    - docker push $DOCKERHUB_USERNAME/django-ec2:nginx-latest
+  interruptible: true
+  only:
+    - develop
+test:
+  stage: test
+  script:
+    - echo "Start test..."
+    - make env-file env=dev
+    - make build env=dev
+    - make migrate
+    - make static
+    - make lint
+    - make tests
+  interruptible: true
+

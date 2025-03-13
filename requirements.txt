@@ -1,0 +1,13 @@
+tenant_schemas_celery 
+django-debug-toolbar-template-profiler
+
+# extention of pytest
+pytest-sugar
+
+# jwt
+djangorestframework-simplejwt
+
+# Swagger
+drf-yasg
+
+flake8

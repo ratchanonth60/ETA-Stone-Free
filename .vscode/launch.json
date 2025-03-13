@@ -1,0 +1,42 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "[Attach]Python: Remote",
+            "type": "python",
+            "request": "attach",
+            "preLaunchTask": "Integration",
+            "connect": {
+                "host": "localhost",
+                "port": 5678
+            },
+            "pathMappings": [
+                {
+                    "localRoot": "${workspaceFolder}/src",
+                    "remoteRoot": "."
+                }
+            ],
+            "justMyCode": false
+        },
+        {
+            "name": "[Debug]Python: Remote",
+            "type": "python",
+            "request": "attach",
+            "connect": {
+                "host": "localhost",
+                "port": 8080
+            },
+            "pathMappings": [
+                {
+                    "localRoot": "${workspaceFolder}/src",
+                    "remoteRoot": "."
+                }
+            ],
+            "justMyCode": false,
+            "django": true
+        }
+    ]
+}

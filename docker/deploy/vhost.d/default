@@ -1,0 +1,9 @@
+location /static/ {
+    alias /usr/src/django/src/public/static/;
+    add_header Access-Control-Allow-Origin *;
+}
+
+location /media/ {
+    alias /usr/src/django/src/public/media/;
+    add_header Access-Control-Allow-Origin *;
+}

@@ -1,0 +1,19 @@
+{
+  "python.testing.pytestEnabled": true,
+  "editor.formatOnSave": true,
+  "[python]": {
+    "editor.codeActionsOnSave": {
+      "source.organizeImports": "explicit",
+      "source.fixAll.unusedImports": "explicit"
+    },
+    "editor.formatOnSave": true,
+    "editor.defaultFormatter": "ms-python.black-formatter"
+  },
+  "cSpell.words": [
+    "noob"
+  ],
+  "cSpell.enabled": false,
+  "CodeGPT.apiKey": "CodeGPT Plus Beta",
+  "python.testing.pytestArgs": [],
+  "python.testing.unittestEnabled": false
+}

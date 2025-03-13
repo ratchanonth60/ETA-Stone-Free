@@ -1,0 +1,74 @@
+{% load i18n %}
+
+<nav id="top_page" class="navbar navbar-expand-lg navbar-dark bg-dark accounts">
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".account-collapse" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>  
+    </button>
+    <div class="container">
+        <div class="navbar-collapse account-collapse collapse">
+            {% block nav_account_languages %}
+            {% if LANGUAGES|length > 1 %}
+                <form id="language_selector" class="form-inline mb-0 mt-2 mt-lg-0" action="{% url 'set_language' %}" method="post">
+                    {% csrf_token %}
+                    <input name="next" type="hidden" value="{{ language_neutral_url_path }}" />
+                    <div class="form-group mb-0">
+                        <select name="language" class="form-control">
+                            {% get_language_info_list for LANGUAGES as languages %}
+                            {% for language in languages %}
+                                <option value="{{ language.code }}" {% if language.code == LANGUAGE_CODE %} selected="selected" {% endif %}>
+                                    {{ language.name_local }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <button class="btn btn-outline-secondary ml-2" type="submit" data-bs-loading-text="{% trans 'Submitting...' %}">{% trans "Go" %}</button>
+                </form>
+            {% endif %}
+            {% endblock %}
+            <ul class="navbar-nav ml-md-auto d-md-flex">
+                {% if user.is_authenticated %}
+                {% block nav_account_navbar_authenticated %}
+                <div class="collapse navbar-collapse" id="navbarNavDarkDropdown">
+                    <ul class="navbar-nav">
+                      <li class="nav-item dropdown">
+                        {% if num_unread_notifications > 0 %}
+                            <a class="nav-link mt-2 mt-lg-0" href="{% url 'customer:notifications-inbox' %}">
+                                <i class="far fa-user mr-2"></i>
+                                {% trans "Account" %}
+                                <span class="badge badge-warning">{{ num_unread_notifications }}</span>
+                            </a>
+                        {% else %}
+                            <a class="nav-link mt-2 mt-lg-0 dropdown-toggle" id="navbarDropdownMenuLink" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                <i class="far fa-user mr-2"></i>
+                                {% trans "Account" %}
+                            </a>
+                        {% endif %}
+                        <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="navbarDarkDropdownMenuLink">
+                            <a class="dropdown-item" href="{% url 'customer:summary' %}">{% trans "Profile" %}</a>
+                            {% if user.is_staff or perms.partner.dashboard_access %}
+                                <a class="dropdown-item" href="{% url 'dashboard:index' %}">
+                                    {% trans "Dashboard" %}
+                                </a>
+                            {% endif %}
+                            <div class="dropdown-divider"></div>
+                            <a class="dropdown-item" href="#">{% trans "Settings" %}</a>
+                            <a id="logout_link" href="{% url 'customer:logout' %}" class="dropdown-item">
+                                    {% trans "Logout" %}
+                            </a>
+                        </ul>
+                      </li>
+                    </ul>
+                  </div>
+                {% endblock %}
+                {% else %}
+                    <li class="nav-item mr-2">
+                        <a id="login_link" href="{% url 'customer:login' %}" class="nav-link">
+                            <i class="fas fa-sign-in-alt mr-2"></i>
+                            {% trans "Login or register" %}
+                        </a>
+                    </li>
+                {% endif %}
+            </ul>
+        </div>
+    </div>
+</nav>

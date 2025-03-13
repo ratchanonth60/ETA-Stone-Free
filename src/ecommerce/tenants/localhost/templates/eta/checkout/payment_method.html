@@ -1,0 +1,66 @@
+{% extends "eta/checkout/checkout.html" %}
+{% load i18n %}
+
+{% block checkout_title %}{{ form.payment_method.label }}{% endblock %}
+
+{% block checkout_nav %}
+    {% include 'eta/checkout/nav.html' with step=3 %}
+{% endblock %}
+
+{% block payment_method %}
+<div class="col-sm-6">
+    <div class="sub-header">
+        <h3>{% trans "Payment" %}</h3>
+    </div>
+    {% if error %}
+        <div class="alert alert-error">
+            {{ error }}
+        </div>
+    {% endif %}
+    <div class="card card-body bg-light card card-body bg-light-success">
+        <form action="" method="post">
+            {% csrf_token %}
+            <!-- Saved cards section -->
+            <h4>{% trans "Saved cards" %}</h4>
+            {% with bankcards=request.user.bankcards.all %}
+                {% if bankcards %}
+                    <ul class="list-group">
+                        {% for card in bankcards %}
+                            <li class="list-group-item">
+                                <input type="radio" name="{{ form.payment_option.name }}" value="{{ card.id }}" id="saved_card_{{ card.id }}">
+                                <label for="saved_card_{{ card.id }}">{{ card.card_type }} {{ card.obfuscated_number }} ({{ card.expiry_month }}/{{ card.expiry_year }})</label>        
+                            </li>
+                        {% endfor %}
+                    </ul>
+                {% endif %}
+            {% endwith %}
+
+            <!-- Other payment methods section -->
+            <h4>{% trans "Other payment methods" %}</h4>
+            {% if form.payment_option.errors %}
+                {{ form.payment_option.errors }}
+            {% endif %}
+            {% for choice in form.payment_option.field.choices %}
+                <input type="radio" name="{{ form.payment_option.name }}" value="{{ choice.0 }}" id="payment_option_{{ choice.0 }}">
+                <label for="payment_option_{{ choice.0 }}">{{ choice.1 }}</label><br>
+            {% endfor %}
+        
+            <!-- Continue button -->
+            <p>
+                <button type="submit" class="btn btn-large btn-primary">
+                    {% trans "Continue to confirmation" %}
+                </button>
+            </p>
+        </form>
+    </div>
+    <div class="form-group clearfix">
+        <div class="row">
+            <div class="col-sm-3 offset-sm-9">
+                <a id="view_preview" href="{% url 'checkout:preview' %}" class="btn btn-primary btn-lg">
+                    {% trans "Continue" %}
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

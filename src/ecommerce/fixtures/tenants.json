@@ -1,0 +1,22 @@
+[
+    {
+        "model": "tenants.client",
+        "pk": 1,
+        "fields": {
+            "schema_name": "demo",
+            "name": "demo",
+            "paid_until": "2023-10-29",
+            "on_trial": false,
+            "created_on": "2023-10-29"
+        }
+    },
+    {
+        "model": "tenants.domain",
+        "pk": 1,
+        "fields": {
+            "domain": "demo.local",
+            "tenant": 1,
+            "is_primary": true
+        }
+    }
+]

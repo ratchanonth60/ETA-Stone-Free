@@ -1,0 +1,16 @@
+{% extends "eta/customer/baseaccountpage.html" %}
+
+{% load i18n %}
+
+{% block tabcontent %}
+{% if payments %}
+    {% for payment in  payments%}
+        <p>{{payment}}</p>
+    {% endfor %}
+{% else %}
+    <p>{% trans 'There are no payment .' %}</p>
+{% endif%}
+<p>
+    <a href="{% url 'customer:payment-create' %}" class="btn btn-primary">{% trans 'Add a payment method' %}</a>
+</p>
+{% endblock %}

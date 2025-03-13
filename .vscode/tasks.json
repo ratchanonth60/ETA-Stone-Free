@@ -1,0 +1,17 @@
+{"version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Integration",
+            "type": "docker-compose",
+            "dockerCompose": {
+                "up": {
+                    "detached": true,
+                    "profiles": ["debug"]
+                },
+                "files": [
+                    "${workspaceFolder}/docker/dev/docker-compose.yml"
+                ],
+            }
+        }    
+    ]
+}

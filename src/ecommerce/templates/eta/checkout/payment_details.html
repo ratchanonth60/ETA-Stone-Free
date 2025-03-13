@@ -1,0 +1,42 @@
+{% extends "eta/checkout/checkout.html" %}
+{% load i18n %}
+
+{% block title %}
+    {% trans "Payment details" %} | {{ block.super }}
+{% endblock %}
+
+{% block checkout_nav %}
+    {% include 'eta/checkout/nav.html' with step=3 %}
+{% endblock %}
+
+{% block checkout_title %}{% trans "Enter payment details" %}{% endblock %}
+
+{% block order_contents %}{% endblock %}
+{% block shipping_address %}{% endblock %}
+{% block shipping_method %}{% endblock %}
+{% block payment_method %}{% endblock %}
+
+{% block payment_details %}
+    {% block payment_details_content %}
+    <div class="row shipping-payment">
+            <div class="col-sm-6">
+                <div class="sub-header">
+                    <h3>{% trans "Blank card" %}</h3>
+                </div>
+                
+                <form action="{% url 'checkout:payment-details' %}" method="post">
+                    {% csrf_token %}
+                    {% include "eta/partials/form_fields.html" with form=payment.form.blank_card_form style='horizontal' %}
+                    <button type="submit" class="btn btn-primary">{% trans "Save Card" %}</button>
+                </form>
+            </div>
+    </div>
+    {% endblock payment_details_content %}
+    <div class="form-group clearfix">
+        <div class="row">
+            <div class="col-sm-3 offset-sm-9">
+                <a id="view_preview" href="{% url 'checkout:preview' %}" class="btn btn-primary btn-lg">{% trans "Continue" %}</a>
+            </div>
+        </div>
+    </div>
+{% endblock payment_details %}

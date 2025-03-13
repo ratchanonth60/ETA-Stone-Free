@@ -1,0 +1,32 @@
+{% load i18n %}
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <button class="navbar-toggler float-right" type="button" data-bs-toggle="collapse" data-bs-target="#bottom_nav_bar" aria-controls="bottom_nav_bar" aria-expanded="false" aria-label="Toggle navigation">
+        <i class="fas fa-bars"></i>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNavDarkDropdown">
+        <ul class="navbar-nav">
+            {% for item in nav_items %}
+                <li class="nav-item {% if item.has_children %}dropdown{% endif %}">
+                    <a class="nav-link {% if item.has_children %}dropdown-toggle{% endif %}" 
+                    href="{% if item.is_heading %}#{% else %}{{ item.url }}{% endif %}" 
+                    {% if item.has_children %}id="navbarDarkDropdownMenuLink" role="button" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">{% endif %}
+                        {% if item.icon %}<i class="{{ item.icon }}"></i>{% endif %}
+                        {{ item.label }}
+                    </a>
+                    {% if item.has_children %}
+                        <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="navbarDarkDropdownMenuLink">
+                            {% for subitem in item.children %}
+                            <li>
+                                <a class="dropdown-item" href="{{ subitem.url }}">
+                                    {% if subitem.icon %}<i class="{{ subitem.icon }}"></i>{% endif %}
+                                    {{ subitem.label }}
+                                </a>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    {% endif %}
+                  </li>
+            {% endfor %}
+        </ul>
+    </div>
+</nav>
