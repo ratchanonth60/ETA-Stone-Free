@@ -4,11 +4,6 @@ import os
 
 from .base import BASE_DIR, DEBUG
 
-# def location(x):
-#     return os.path.join(
-#         os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), x
-#     )
-
 
 # Media files
 MEDIA_URL = "/media/"
@@ -21,32 +16,15 @@ STATIC_ROOT = os.path.join(BASE_DIR, "public", "static")
 STATICFILES_DIRS = [
     os.path.join(BASE_DIR, "static"),
 ]
-if not DEBUG:
-    # Media and static
-    STATIC_ROOT = os.environ.get("STATIC_ROOT", "/var/www/pod/static")
-    MEDIA_ROOT = os.environ.get("MEDIA_ROOT", "/var/www/pod/media")
 
-# if not DEBUG:
-#     REWRITE_STATIC_URLS = True
-# STATICFILES_STORAGE = "django.contrib.staticfiles.storage.ManifestStaticFilesStorage"
-# STATICFILES_DIRS = (location("static/"),)
-
-# PUBLIC_ROOT = location("public")
-# MULTITENANT_RELATIVE_STATIC_ROOT = ""  # (default: create sub-directory for each tenant)
-# MULTITENANT_STATICFILES_DIRS = [
-#     os.path.join(BASE_DIR, "static/%s"),
-# ]
-# MULTITENANT_STATICFILES_DIRS = []
-
-# STATICFILES_FINDERS = (
-#     "django_tenants.staticfiles.finders.TenantFileSystemFinder",  # Must be first
-#     "django.contrib.staticfiles.finders.FileSystemFinder",
-#     "django.contrib.staticfiles.finders.AppDirectoriesFinder",
-#     "compressor.finders.CompressorFinder",
-# )
+# Storage สำหรับ static files
 STATICFILES_STORAGE = "django_tenants.staticfiles.storage.TenantStaticFilesStorage"
-
-DEFAULT_FILE_STORAGE = "django_tenants.files.storage.TenantFileSystemStorage"
+# Storage สำหรับ media files
+DEFAULT_FILE_STORAGE = (
+    "django.contrib.staticfiles.storage.FileSystemStorage"
+    if DEBUG
+    else "ecommerce.core.storages.tenant_storages.TenantS3Storage"
+)
 
 TEMPLATES = [
     {

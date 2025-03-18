@@ -11,7 +11,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__fil
 # See https://docs.djangoproject.com/en/4.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-zj&vjj0q&b=tivqeuidpze37%kdok%ea(k)cjhawg051)(+^7k"
+SECRET_KEY = os.getenv("SECRET_KEY", "")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv("DEBUG", False)
@@ -51,6 +51,11 @@ SITE_ID = 1
 
 SESSION_ENGINE = "django.contrib.sessions.backends.cached_db"
 SESSION_FILE_PATH = "django.contrib.sessions.backends.file"
+
+AUTHENTICATION_BACKENDS = [
+    "graphql_jwt.backends.JSONWebTokenBackend",
+    "django.contrib.auth.backends.ModelBackend",
+]
 
 # SMTP SETTINGS
 EMAIL_BACKEND = (

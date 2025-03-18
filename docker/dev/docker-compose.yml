@@ -1,9 +1,10 @@
-version: "3.3"
-
 volumes:
   postgres_data:
   cache:
     external: true
+  sonarqube_data:
+  sonarqube_logs:
+  sonarqube_extensions:
 
 networks:
   web_net:
@@ -133,26 +134,26 @@ services:
       - RABBITMQ_DEFAULT_USER=user1
       - RABBITMQ_DEFAULT_PASS=rabbitmq
     networks: [broker_net]
-# Uncomment and configure these services if needed
-#  elasticsearch:
-#    image: docker.elastic.co/elasticsearch/elasticsearch:7.15.1
-#    container_name: elasticsearch
-#    environment:
-#      - discovery.type=single-node
-#    ports: ["9200:9200"]
-#    networks: [elk]
 
-#  logstash:
-#    image: docker.elastic.co/logstash/logstash:7.15.1
-#    container_name: logstash
-#    volumes: [./logstash-config:/usr/share/logstash/pipeline]
-#    ports: ["5000:5000"]
-#    depends_on: [elasticsearch]
-#    networks: [elk]
+  sonarqube:
+    image: sonarqube
+    container_name: sonarqube
+    platform: linux/amd64
+    environment:
+      - SONAR_ES_BOOTSTRAP_CHECKS_DISABLE=true
+    ports:
+      - "9000:9000"
+    volumes:
+      - sonarqube_data:/opt/sonarqube/data
+      - sonarqube_logs:/opt/sonarqube/logs
+      - sonarqube_extensions:/opt/sonarqube/extensions
+    networks:
+      - web_net
 
-#  kibana:
-#    image: docker.elastic.co/kibana/kibana:7.15.1
-#    container_name: kibana
-#    ports: ["5601:5601"]
-#    depends_on: [elasticsearch]
-#    networks: [elk]
+  sonarqube-scanner:
+    image: sonarsource/sonar-scanner-cli
+    volumes:
+      - ../../.:/application
+    networks:
+      - web_net
+    command: ["bash", "-c", "tail -f /dev/stdout"]

@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 """Django's command-line utility for administrative tasks."""
+
 import logging
 import os
 import sys
@@ -12,14 +13,15 @@ logger = logging.getLogger(__name__)
 def main():
     """Run administrative tasks."""
     os.environ.setdefault(
-        "DJANGO_SETTINGS_MODULE", os.getenv("DJANGO_SETTINGS_MODULE", "")
+        "DJANGO_SETTINGS_MODULE",
+        os.getenv("DJANGO_SETTINGS_MODULE", "src.eta.settings"),
     )
     if settings.DEBUG and (
         os.environ.get("RUN_MAIN") or os.environ.get("WERKZEUG_RUN_MAIN")
     ):
-        import ptvsd
+        import debugpy
 
-        ptvsd.enable_attach(address=(("0.0.0.0", 8080)))
+        debugpy.listen((("0.0.0.0", 8080)))
         logger.info("debug redy connect on port: 8080")
         print("Attached remote debugger")
     try:

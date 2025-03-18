@@ -10,6 +10,7 @@ THIRD_PARTY = [
     "easy_thumbnails",
     # "rest_framework_simplejwt",
     "drf_yasg",
+    "graphql_jwt.refresh_token.apps.RefreshTokenConfig",
 ]
 
 DEBUG_TOOLBAR_EXTENTIONS = ["template_profiler_panel"]
@@ -26,6 +27,8 @@ DJANGO_APPS = [
 ]
 
 API = [
+    "graphene_django",
+    "graphql_jwt",
     "ecommerce.api.config.Api",
     "ecommerce.api.basket.apps.BasketApi",
     "ecommerce.api.catalogue.apps.CatalogueApi",

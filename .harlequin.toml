@@ -1,0 +1,9 @@
+[profiles.localhost]
+adapter = "postgres"
+theme = "catppuccin-mocha"
+limit = 10_000
+host = "host.docker.internal"
+user = "root"
+password = "noobmaster123"
+dbname = "eta"
+port = 5432
