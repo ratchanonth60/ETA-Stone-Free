@@ -3,6 +3,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.utils.translation import gettext_lazy as _
 from graphene.types.generic import GenericScalar
 from graphene_django.forms.mutation import DjangoModelFormMutation
+from graphql import GraphQLError
 from graphql_jwt.decorators import login_required
 
 from ecommerce.apps.address.forms import UserAddressForm
@@ -22,7 +23,20 @@ class UserAddressMutation(DjangoModelFormMutation):
     @classmethod
     @login_required
     def mutate_and_get_payload(cls, root, info, **input):
-        # ดึง id จาก input ถ้ามี
+        """
+        Handle mutation to create or update a UserAddress.
+
+        Args:
+            root: The root object (usually None in mutations).
+            info: GraphQL ResolveInfo object containing context and user.
+            **input: Input data from the GraphQL mutation.
+
+        Returns:
+            UserAddressMutation: Payload with user_address or errors.
+
+        Raises:
+            GraphQLError: If the address ID is provided but not found.
+        """
         address_id = input.get("id")
         instance = None
 
@@ -33,7 +47,10 @@ class UserAddressMutation(DjangoModelFormMutation):
                     id=address_id, user=info.context.user
                 )
             except ObjectDoesNotExist:
-                raise Exception(_("Address with id '%s' not found") % address_id)
+                raise GraphQLError(
+                    message=_("Address with id '%s' not found") % address_id,
+                    extensions={"code": "ADDRESS_NOT_FOUND"},
+                )
             # ส่ง instance เดิมไปที่ฟอร์มเพื่ออัปเดต
             form = cls.get_form(root, info, instance=instance, **input)
         else:
