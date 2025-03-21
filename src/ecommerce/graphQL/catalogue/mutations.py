@@ -1,6 +1,23 @@
 import graphene
+from django.core.exceptions import ObjectDoesNotExist
+from django.utils.translation import gettext_lazy as _
+from graphene.types.generic import GenericScalar
+from graphene_django.forms.mutation import DjangoModelFormMutation
 from graphql_jwt.decorators import login_required
 
+from ecommerce.apps.catalogue.forms import (
+    AttributeOptionForm,
+    AttributeOptionGroupForm,
+    CategoryForm,
+    OptionForm,
+    ProductAttributeForm,
+    ProductAttributeValueForm,
+    ProductCategoryForm,
+    ProductClassForm,
+    ProductForm,
+    ProductImageForm,
+    ProductRecommendationForm,
+)
 from ecommerce.apps.catalogue.models import (
     AttributeOption,
     AttributeOptionGroup,
@@ -30,279 +47,326 @@ from .types import (
 )
 
 
-class ProductCreateMutation(graphene.Mutation):
-    class Arguments:
-        title = graphene.String(required=True)
-        slug = graphene.String(required=True)
-        description = graphene.String()
-        product_class_id = graphene.ID(required=True)
-        is_public = graphene.Boolean(default_value=True)
-
-    product = graphene.Field(ProductType)
-
-    @login_required
-    def mutate(
-        self, info, title, slug, description=None, product_class_id=None, is_public=True
-    ):
-        try:
-            product_class = ProductClass.objects.get(id=product_class_id)
-            product = Product.objects.create(
-                title=title,
-                slug=slug,
-                description=description or "",
-                product_class=product_class,
-                is_public=is_public,
-            )
-            return ProductCreateMutation(product=product)
-        except ProductClass.DoesNotExist:
-            raise Exception("Product class not found")
-
-
-class CategoryCreateMutation(graphene.Mutation):
-    class Arguments:
-        name = graphene.String(required=True)
-        slug = graphene.String(required=True)
-        description = graphene.String()
-        is_public = graphene.Boolean(default_value=True)
-
-    category = graphene.Field(CategoryType)
-
-    @login_required
-    def mutate(self, info, name, slug, description=None, is_public=True):
-        category = Category.objects.create(
-            name=name, slug=slug, description=description or "", is_public=is_public
-        )
-        return CategoryCreateMutation(category=category)
-
-
-class ProductClassCreateMutation(graphene.Mutation):
-    class Arguments:
-        name = graphene.String(required=True)
-        slug = graphene.String(required=True)
-        requires_shipping = graphene.Boolean(default_value=True)
-        track_stock = graphene.Boolean(default_value=True)
+class ProductClassMutation(DjangoModelFormMutation):
+    class Meta:
+        form_class = ProductClassForm
+        return_field_name = "product_class"
 
     product_class = graphene.Field(ProductClassType)
+    errors = GenericScalar()
 
+    @classmethod
     @login_required
-    def mutate(self, info, name, slug, requires_shipping=True, track_stock=True):
-        product_class = ProductClass.objects.create(
-            name=name,
-            slug=slug,
-            requires_shipping=requires_shipping,
-            track_stock=track_stock,
-        )
-        return ProductClassCreateMutation(product_class=product_class)
+    def mutate_and_get_payload(cls, root, info, **input):
+        instance_id = input.get("id")
+        instance = None
+        if instance_id:
+            try:
+                instance = ProductClass.objects.get(id=instance_id)
+            except ObjectDoesNotExist:
+                raise Exception(_("ProductClass with id '%s' not found") % instance_id)
+            form = cls.get_form(root, info, instance=instance, **input)
+        else:
+            form = cls.get_form(root, info, **input)
+        if form.is_valid():
+            instance = form.save()
+            return cls(product_class=instance)
+        return cls(errors=form.errors.get_json_data())
 
 
-class ProductCategoryCreateMutation(graphene.Mutation):
-    class Arguments:
-        product_id = graphene.ID(required=True)
-        category_id = graphene.ID(required=True)
+class CategoryMutation(DjangoModelFormMutation):
+    class Meta:
+        form_class = CategoryForm
+        return_field_name = "category"
+
+    category = graphene.Field(CategoryType)
+    errors = GenericScalar()
+
+    @classmethod
+    @login_required
+    def mutate_and_get_payload(cls, root, info, **input):
+        instance_id = input.get("id")
+        instance = None
+        if instance_id:
+            try:
+                instance = Category.objects.get(id=instance_id)
+            except ObjectDoesNotExist:
+                raise Exception(_("Category with id '%s' not found") % instance_id)
+            form = cls.get_form(root, info, instance=instance, **input)
+        else:
+            form = cls.get_form(root, info, **input)
+        if form.is_valid():
+            instance = form.save()
+            return cls(category=instance)
+        return cls(errors=form.errors.get_json_data())
+
+
+class ProductCategoryMutation(DjangoModelFormMutation):
+    class Meta:
+        form_class = ProductCategoryForm
+        return_field_name = "product_category"
 
     product_category = graphene.Field(ProductCategoryType)
+    errors = GenericScalar()
 
+    @classmethod
     @login_required
-    def mutate(self, info, product_id, category_id):
-        try:
-            product = Product.objects.get(id=product_id)
-            category = Category.objects.get(id=category_id)
-            product_category = ProductCategory.objects.create(
-                product=product, category=category
-            )
-            return ProductCategoryCreateMutation(product_category=product_category)
-        except (Product.DoesNotExist, Category.DoesNotExist):
-            raise Exception("Product or Category not found")
+    def mutate_and_get_payload(cls, root, info, **input):
+        instance_id = input.get("id")
+        instance = None
+        if instance_id:
+            try:
+                instance = ProductCategory.objects.get(id=instance_id)
+            except ObjectDoesNotExist:
+                raise Exception(
+                    _("ProductCategory with id '%s' not found") % instance_id
+                )
+            form = cls.get_form(root, info, instance=instance, **input)
+        else:
+            form = cls.get_form(root, info, **input)
+        if form.is_valid():
+            instance = form.save()
+            return cls(product_category=instance)
+        return cls(errors=form.errors.get_json_data())
 
 
-class ProductRecommendationCreateMutation(graphene.Mutation):
-    class Arguments:
-        primary_id = graphene.ID(required=True)
-        recommendation_id = graphene.ID(required=True)
-        ranking = graphene.Int(default_value=0)
+class ProductMutation(DjangoModelFormMutation):
+    class Meta:
+        form_class = ProductForm
+        return_field_name = "product"
+
+    product = graphene.Field(ProductType)
+    errors = GenericScalar()
+
+    @classmethod
+    @login_required
+    def mutate_and_get_payload(cls, root, info, **input):
+        instance_id = input.get("id")
+        instance = None
+        if instance_id:
+            try:
+                instance = Product.objects.get(id=instance_id)
+            except ObjectDoesNotExist:
+                raise Exception(_("Product with id '%s' not found") % instance_id)
+            form = cls.get_form(root, info, instance=instance, **input)
+        else:
+            form = cls.get_form(root, info, **input)
+        if form.is_valid():
+            instance = form.save(commit=False)
+            instance.save()
+            form.save_m2m()  # บันทึก ManyToMany fields
+            return cls(product=instance)
+        return cls(errors=form.errors.get_json_data())
+
+
+class ProductRecommendationMutation(DjangoModelFormMutation):
+    class Meta:
+        form_class = ProductRecommendationForm
+        return_field_name = "product_recommendation"
 
     product_recommendation = graphene.Field(ProductRecommendationType)
+    errors = GenericScalar()
 
+    @classmethod
     @login_required
-    def mutate(self, info, primary_id, recommendation_id, ranking=0):
-        try:
-            primary = Product.objects.get(id=primary_id)
-            recommendation = Product.objects.get(id=recommendation_id)
-            product_recommendation = ProductRecommendation.objects.create(
-                primary=primary, recommendation=recommendation, ranking=ranking
-            )
-            return ProductRecommendationCreateMutation(
-                product_recommendation=product_recommendation
-            )
-        except Product.DoesNotExist:
-            raise Exception("Product not found")
+    def mutate_and_get_payload(cls, root, info, **input):
+        instance_id = input.get("id")
+        instance = None
+        if instance_id:
+            try:
+                instance = ProductRecommendation.objects.get(id=instance_id)
+            except ObjectDoesNotExist:
+                raise Exception(
+                    _("ProductRecommendation with id '%s' not found") % instance_id
+                )
+            form = cls.get_form(root, info, instance=instance, **input)
+        else:
+            form = cls.get_form(root, info, **input)
+        if form.is_valid():
+            instance = form.save()
+            return cls(product_recommendation=instance)
+        return cls(errors=form.errors.get_json_data())
 
 
-class ProductAttributeCreateMutation(graphene.Mutation):
-    class Arguments:
-        product_class_id = graphene.ID()
-        name = graphene.String(required=True)
-        code = graphene.String(required=True)
-        type = graphene.String(required=True)
-        option_group_id = graphene.ID()
-        required = graphene.Boolean(default_value=False)
+class ProductAttributeMutation(DjangoModelFormMutation):
+    class Meta:
+        form_class = ProductAttributeForm
+        return_field_name = "product_attribute"
 
     product_attribute = graphene.Field(ProductAttributeType)
+    errors = GenericScalar()
 
+    @classmethod
     @login_required
-    def mutate(
-        self,
-        info,
-        product_class_id=None,
-        name=None,
-        code=None,
-        type=None,
-        option_group_id=None,
-        required=False,
-    ):
-        try:
-            product_class = (
-                ProductClass.objects.get(id=product_class_id)
-                if product_class_id
-                else None
-            )
-            option_group = (
-                AttributeOptionGroup.objects.get(id=option_group_id)
-                if option_group_id
-                else None
-            )
-            product_attribute = ProductAttribute.objects.create(
-                product_class=product_class,
-                name=name,
-                code=code,
-                type=type,
-                option_group=option_group,
-                required=required,
-            )
-            return ProductAttributeCreateMutation(product_attribute=product_attribute)
-        except (ProductClass.DoesNotExist, AttributeOptionGroup.DoesNotExist):
-            raise Exception("Product class or option group not found")
+    def mutate_and_get_payload(cls, root, info, **input):
+        instance_id = input.get("id")
+        instance = None
+        if instance_id:
+            try:
+                instance = ProductAttribute.objects.get(id=instance_id)
+            except ObjectDoesNotExist:
+                raise Exception(
+                    _("ProductAttribute with id '%s' not found") % instance_id
+                )
+            form = cls.get_form(root, info, instance=instance, **input)
+        else:
+            form = cls.get_form(root, info, **input)
+        if form.is_valid():
+            instance = form.save()
+            return cls(product_attribute=instance)
+        return cls(errors=form.errors.get_json_data())
 
 
-class ProductAttributeValueCreateMutation(graphene.Mutation):
-    class Arguments:
-        attribute_id = graphene.ID(required=True)
-        product_id = graphene.ID(required=True)
-        value = graphene.JSONString(required=True)
+class ProductAttributeValueMutation(DjangoModelFormMutation):
+    class Meta:
+        form_class = ProductAttributeValueForm
+        return_field_name = "product_attribute_value"
 
     product_attribute_value = graphene.Field(ProductAttributeValueType)
+    errors = GenericScalar()
 
+    @classmethod
     @login_required
-    def mutate(self, info, attribute_id, product_id, value):
-        try:
-            attribute = ProductAttribute.objects.get(id=attribute_id)
-            product = Product.objects.get(id=product_id)
-            product_attribute_value = ProductAttributeValue.objects.create(
-                attribute=attribute, product=product, value=value
-            )
-            return ProductAttributeValueCreateMutation(
-                product_attribute_value=product_attribute_value
-            )
-        except (ProductAttribute.DoesNotExist, Product.DoesNotExist):
-            raise Exception("Attribute or Product not found")
+    def mutate_and_get_payload(cls, root, info, **input):
+        instance_id = input.get("id")
+        instance = None
+        if instance_id:
+            try:
+                instance = ProductAttributeValue.objects.get(id=instance_id)
+            except ObjectDoesNotExist:
+                raise Exception(
+                    _("ProductAttributeValue with id '%s' not found") % instance_id
+                )
+            form = cls.get_form(root, info, instance=instance, **input)
+        else:
+            form = cls.get_form(root, info, **input)
+        if form.is_valid():
+            instance = form.save()
+            return cls(product_attribute_value=instance)
+        return cls(errors=form.errors.get_json_data())
 
 
-class AttributeOptionGroupCreateMutation(graphene.Mutation):
-    class Arguments:
-        name = graphene.String(required=True)
+class AttributeOptionGroupMutation(DjangoModelFormMutation):
+    class Meta:
+        form_class = AttributeOptionGroupForm
+        return_field_name = "attribute_option_group"
 
     attribute_option_group = graphene.Field(AttributeOptionGroupType)
+    errors = GenericScalar()
 
+    @classmethod
     @login_required
-    def mutate(self, info, name):
-        attribute_option_group = AttributeOptionGroup.objects.create(name=name)
-        return AttributeOptionGroupCreateMutation(
-            attribute_option_group=attribute_option_group
-        )
+    def mutate_and_get_payload(cls, root, info, **input):
+        instance_id = input.get("id")
+        instance = None
+        if instance_id:
+            try:
+                instance = AttributeOptionGroup.objects.get(id=instance_id)
+            except ObjectDoesNotExist:
+                raise Exception(
+                    _("AttributeOptionGroup with id '%s' not found") % instance_id
+                )
+            form = cls.get_form(root, info, instance=instance, **input)
+        else:
+            form = cls.get_form(root, info, **input)
+        if form.is_valid():
+            instance = form.save()
+            return cls(attribute_option_group=instance)
+        return cls(errors=form.errors.get_json_data())
 
 
-class AttributeOptionCreateMutation(graphene.Mutation):
-    class Arguments:
-        group_id = graphene.ID(required=True)
-        option = graphene.String(required=True)
+class AttributeOptionMutation(DjangoModelFormMutation):
+    class Meta:
+        form_class = AttributeOptionForm
+        return_field_name = "attribute_option"
 
     attribute_option = graphene.Field(AttributeOptionType)
+    errors = GenericScalar()
 
+    @classmethod
     @login_required
-    def mutate(self, info, group_id, option):
-        try:
-            group = AttributeOptionGroup.objects.get(id=group_id)
-            attribute_option = AttributeOption.objects.create(
-                group=group, option=option
-            )
-            return AttributeOptionCreateMutation(attribute_option=attribute_option)
-        except AttributeOptionGroup.DoesNotExist:
-            raise Exception("Attribute option group not found")
+    def mutate_and_get_payload(cls, root, info, **input):
+        instance_id = input.get("id")
+        instance = None
+        if instance_id:
+            try:
+                instance = AttributeOption.objects.get(id=instance_id)
+            except ObjectDoesNotExist:
+                raise Exception(
+                    _("AttributeOption with id '%s' not found") % instance_id
+                )
+            form = cls.get_form(root, info, instance=instance, **input)
+        else:
+            form = cls.get_form(root, info, **input)
+        if form.is_valid():
+            instance = form.save()
+            return cls(attribute_option=instance)
+        return cls(errors=form.errors.get_json_data())
 
 
-class OptionCreateMutation(graphene.Mutation):
-    class Arguments:
-        name = graphene.String(required=True)
-        code = graphene.String(required=True)
-        type = graphene.String(required=True)
-        required = graphene.Boolean(default_value=False)
-        option_group_id = graphene.ID()
-        help_text = graphene.String()
-        order = graphene.Int()
+class OptionMutation(DjangoModelFormMutation):
+    class Meta:
+        form_class = OptionForm
+        return_field_name = "option"
 
     option = graphene.Field(OptionType)
+    errors = GenericScalar()
 
+    @classmethod
     @login_required
-    def mutate(
-        self,
-        info,
-        name,
-        code,
-        type,
-        required=False,
-        option_group_id=None,
-        help_text=None,
-        order=None,
-    ):
-        try:
-            option_group = (
-                AttributeOptionGroup.objects.get(id=option_group_id)
-                if option_group_id
-                else None
-            )
-            option = Option.objects.create(
-                name=name,
-                code=code,
-                type=type,
-                required=required,
-                option_group=option_group,
-                help_text=help_text,
-                order=order,
-            )
-            return OptionCreateMutation(option=option)
-        except AttributeOptionGroup.DoesNotExist:
-            raise Exception("Option group not found")
+    def mutate_and_get_payload(cls, root, info, **input):
+        instance_id = input.get("id")
+        instance = None
+        if instance_id:
+            try:
+                instance = Option.objects.get(id=instance_id)
+            except ObjectDoesNotExist:
+                raise Exception(_("Option with id '%s' not found") % instance_id)
+            form = cls.get_form(root, info, instance=instance, **input)
+        else:
+            form = cls.get_form(root, info, **input)
+        if form.is_valid():
+            instance = form.save()
+            return cls(option=instance)
+        return cls(errors=form.errors.get_json_data())
 
 
-class ProductImageCreateMutation(graphene.Mutation):
-    class Arguments:
-        product_id = graphene.ID(required=True)
-        original = graphene.String(required=True)
-        caption = graphene.String()
-        display_order = graphene.Int(default_value=0)
+class ProductImageMutation(DjangoModelFormMutation):
+    class Meta:
+        form_class = ProductImageForm
+        return_field_name = "product_image"
 
     product_image = graphene.Field(ProductImageType)
+    errors = GenericScalar()
 
+    @classmethod
     @login_required
-    def mutate(self, info, product_id, original, caption=None, display_order=0):
-        try:
-            product = Product.objects.get(id=product_id)
-            product_image = ProductImage.objects.create(
-                product=product,
-                original=original,
-                caption=caption or "",
-                display_order=display_order,
-            )
-            return ProductImageCreateMutation(product_image=product_image)
-        except Product.DoesNotExist:
-            raise Exception("Product not found")
+    def mutate_and_get_payload(cls, root, info, **input):
+        instance_id = input.get("id")
+        instance = None
+        if instance_id:
+            try:
+                instance = ProductImage.objects.get(id=instance_id)
+            except ObjectDoesNotExist:
+                raise Exception(_("ProductImage with id '%s' not found") % instance_id)
+            form = cls.get_form(root, info, instance=instance, **input)
+        else:
+            form = cls.get_form(root, info, **input)
+        if form.is_valid():
+            instance = form.save()
+            return cls(product_image=instance)
+        return cls(errors=form.errors.get_json_data())
+
+
+class CatalogueMutation(graphene.ObjectType):
+    create_or_update_product_class = ProductClassMutation.Field()
+    create_or_update_category = CategoryMutation.Field()
+    create_or_update_product_category = ProductCategoryMutation.Field()
+    create_or_update_product = ProductMutation.Field()
+    create_or_update_product_recommendation = ProductRecommendationMutation.Field()
+    create_or_update_product_attribute = ProductAttributeMutation.Field()
+    create_or_update_product_attribute_value = ProductAttributeValueMutation.Field()
+    create_or_update_attribute_option_group = AttributeOptionGroupMutation.Field()
+    create_or_update_attribute_option = AttributeOptionMutation.Field()
+    create_or_update_option = OptionMutation.Field()
+    create_or_update_product_image = ProductImageMutation.Field()

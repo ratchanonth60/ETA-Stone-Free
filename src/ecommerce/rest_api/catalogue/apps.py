@@ -6,23 +6,27 @@ from rest_framework.routers import DefaultRouter
 
 class CatalogueApi(OscarConfig):
     label = "catalogue_api"
-    name = "ecommerce.api.catalogue"
+    name = "ecommerce.rest_api.catalogue"
     verbose_name = _("CatalogueAPI")
     # default = True
     namespace = "catalogue_api"
 
     def ready(self):
         self.product = get_class(
-            "ecommerce.api.catalogue.views", "ProductViewSet", "ecommerce.apps"
+            "ecommerce.rest_api.catalogue.views", "ProductViewSet", "ecommerce.apps"
         )
         self.category = get_class(
-            "ecommerce.api.catalogue.views", "CategoryViewSet", "ecommerce.apps"
+            "ecommerce.rest_api.catalogue.views", "CategoryViewSet", "ecommerce.apps"
         )
         self.product_class = get_class(
-            "ecommerce.api.catalogue.views", "ProductClassViewSet", "ecommerce.apps"
+            "ecommerce.rest_api.catalogue.views",
+            "ProductClassViewSet",
+            "ecommerce.apps",
         )
         self.product_image = get_class(
-            "ecommerce.api.catalogue.views", "ProductImageViewSet", "ecommerce.apps"
+            "ecommerce.rest_api.catalogue.views",
+            "ProductImageViewSet",
+            "ecommerce.apps",
         )
 
     @property

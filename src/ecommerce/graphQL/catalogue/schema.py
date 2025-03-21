@@ -1,18 +1,6 @@
 import graphene
 
-from .mutations import (
-    AttributeOptionCreateMutation,
-    AttributeOptionGroupCreateMutation,
-    CategoryCreateMutation,
-    OptionCreateMutation,
-    ProductAttributeCreateMutation,
-    ProductAttributeValueCreateMutation,
-    ProductCategoryCreateMutation,
-    ProductClassCreateMutation,
-    ProductCreateMutation,
-    ProductImageCreateMutation,
-    ProductRecommendationCreateMutation,
-)
+from .mutations import CatalogueMutation
 from .queries import (
     AttributeOptionGroupQuery,
     AttributeOptionQuery,
@@ -78,14 +66,4 @@ class Query(
 
 
 class Mutation(graphene.ObjectType):
-    product = ProductCreateMutation.Field()
-    categorye = CategoryCreateMutation.Field()
-    product_class = ProductClassCreateMutation.Field()
-    product_category = ProductCategoryCreateMutation.Field()
-    product_recommendation = ProductRecommendationCreateMutation.Field()
-    product_attribute = ProductAttributeCreateMutation.Field()
-    product_attribute_value = ProductAttributeValueCreateMutation.Field()
-    attribute_option_group = AttributeOptionGroupCreateMutation.Field()
-    attribute_option = AttributeOptionCreateMutation.Field()
-    option = OptionCreateMutation.Field()
-    product_image = ProductImageCreateMutation.Field()
+    product = graphene.Field(CatalogueMutation)

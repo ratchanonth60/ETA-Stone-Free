@@ -6,14 +6,14 @@ from rest_framework.routers import DefaultRouter
 
 class UsersApi(OscarConfig):
     label = "users_api"
-    name = "ecommerce.api.users"
+    name = "ecommerce.rest_api.users"
     verbose_name = _("UsersApi")
     # default = True
     namespace = "users_api"
 
     def ready(self):
         self.users = get_class(
-            "ecommerce.api.users.views", "UsersViewSet", "ecommerce.apps"
+            "ecommerce.rest_api.users.views", "UsersViewSet", "ecommerce.apps"
         )
 
     @property

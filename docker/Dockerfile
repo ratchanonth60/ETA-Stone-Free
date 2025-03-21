@@ -1,5 +1,5 @@
 # pull official base image
-FROM noobmaster666/django-eta-template
+FROM noobmaster666/django-eta-template:latest
 
 
 ENV XDG_CACHE_HOME=/cache

@@ -1,4 +1,4 @@
-FROM python:3.13-slim as builder
+FROM python:3.13-slim AS builder
 
 RUN apt-get update && apt-get install -y libpq-dev gcc
 
@@ -14,10 +14,13 @@ RUN pip install --no-deps --no-cache-dir --upgrade -r /app/requirements.txt
 
 FROM python:3.13-slim
 
-RUN apt-get update && apt-get install -y libpq-dev && rm -rf /var/lib/apt/lists/*
 RUN apt update && apt install -y \
+  libpq-dev && rm -rf /var/lib/apt/lists/* \
   postgresql \
   postgresql-contrib \
+  pkg-config \
+  default-libmysqlclient-dev \
+  build-essential \
   gcc \
   python3-dev \
   musl-dev \
@@ -25,7 +28,6 @@ RUN apt update && apt install -y \
   bash && \
   pip install --upgrade pip 
 
-RUN apt-get install pkg-config python3-dev default-libmysqlclient-dev build-essential -y
 COPY --from=builder /opt/venv /opt/venv
 
 ENV  PATH="/opt/venv/bin:$PATH"

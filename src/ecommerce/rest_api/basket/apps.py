@@ -6,17 +6,16 @@ from rest_framework.routers import DefaultRouter
 
 class BasketApi(OscarConfig):
     label = "basket_api"
-    name = "ecommerce.api.basket"
+    name = "ecommerce.rest_api.basket"
     verbose_name = _("BasketApi")
-    # default = True
     namespace = "basket_api"
 
     def ready(self):
         self.basket = get_class(
-            "ecommerce.api.basket.views", "BasketViewSet", "ecommerce.apps"
+            "ecommerce.rest_api.basket.views", "BasketViewSet", "ecommerce.apps"
         )
         self.line = get_class(
-            "ecommerce.api.basket.views", "LineViewSet", "ecommerce.apps"
+            "ecommerce.rest_api.basket.views", "LineViewSet", "ecommerce.apps"
         )
 
     @property

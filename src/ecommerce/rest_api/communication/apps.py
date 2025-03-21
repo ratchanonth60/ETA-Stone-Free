@@ -6,12 +6,12 @@ from rest_framework.routers import DefaultRouter
 
 class CommunicationApi(OscarConfig):
     label = "communication_api"
-    name = "ecommerce.api.communication"
+    name = "ecommerce.rest_api.communication"
     verbose_name = _("CommunicationAPI")
     namespace = "communication_api"
 
     def ready(self):
-        COMMUNICATION_VIEWS = "ecommerce.api.communication.views"
+        COMMUNICATION_VIEWS = "ecommerce.rest_api.communication.views"
         APP_PATH = "ecommerce.apps"
         self.communicate = get_class(
             COMMUNICATION_VIEWS,

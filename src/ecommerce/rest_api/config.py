@@ -6,7 +6,7 @@ from rest_framework.routers import DefaultRouter
 
 class Api(OscarConfig):
     label = "api"
-    name = "ecommerce.api"
+    name = "ecommerce.rest_api"
     verbose_name = _("API")
     # default = True
 

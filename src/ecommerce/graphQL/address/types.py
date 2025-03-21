@@ -12,6 +12,8 @@ class UserAddressType(DjangoObjectType):
         filterset_class = UserAddressFilter
         interfaces = (graphene.relay.Node,)  # รองรับ Relay pagination
 
+    city = graphene.String(source="line4")
+
 
 class CountryType(DjangoObjectType):
     class Meta:

@@ -1,4 +1,5 @@
 from django.apps import apps
+from django.conf import settings
 from django.conf.urls import i18n
 from django.conf.urls.i18n import i18n_patterns
 from django.contrib import admin
@@ -49,6 +50,9 @@ urlpatterns = [
 urlpatterns += i18n_patterns(
     path("", include(apps.get_app_config("ecommerce").urls[0])),
     path("api/<version>/", include(apps.get_app_config("api").urls[0])),
-    path("graphql/", GraphQLView.as_view(graphiql=True, schema=schema)),
+    path(
+        "graphql/",
+        GraphQLView.as_view(graphiql=bool(settings.DEBUG), schema=schema),
+    ),
     prefix_default_language=False,
 )

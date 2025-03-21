@@ -6,17 +6,10 @@ from oscar.apps.address.abstract_models import AbstractCountry, AbstractUserAddr
 from oscar.core.compat import AUTH_USER_MODEL
 from oscar.models.fields import UppercaseCharField
 
+from ecommerce.core.defults import TITLE_CHOICES
+
 
 class UserAddress(AbstractUserAddress):
-    MR, MISS, MRS, MS, DR = ("Mr", "Miss", "Mrs", "Ms", "Dr")
-    TITLE_CHOICES = (
-        (MR, _("Mr")),
-        (MISS, _("Miss")),
-        (MRS, _("Mrs")),
-        (MS, _("Ms")),
-        (DR, _("Dr")),
-    )
-
     POSTCODE_REQUIRED = "postcode" in settings.OSCAR_REQUIRED_ADDRESS_FIELDS
 
     user = models.ForeignKey(

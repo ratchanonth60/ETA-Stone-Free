@@ -29,11 +29,11 @@ DJANGO_APPS = [
 API = [
     "graphene_django",
     "graphql_jwt",
-    "ecommerce.api.config.Api",
-    "ecommerce.api.basket.apps.BasketApi",
-    "ecommerce.api.catalogue.apps.CatalogueApi",
-    "ecommerce.api.users.apps.UsersApi",
-    "ecommerce.api.communication.apps.CommunicationApi",
+    "ecommerce.rest_api.config.Api",
+    "ecommerce.rest_api.basket.apps.BasketApi",
+    "ecommerce.rest_api.catalogue.apps.CatalogueApi",
+    "ecommerce.rest_api.users.apps.UsersApi",
+    "ecommerce.rest_api.communication.apps.CommunicationApi",
 ]
 
 APPS = [

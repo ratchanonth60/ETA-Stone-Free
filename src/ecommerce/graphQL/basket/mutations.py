@@ -1,123 +1,111 @@
 import graphene
+from django.core.exceptions import ObjectDoesNotExist
+from django.utils.translation import gettext_lazy as _
+from graphene.types.generic import GenericScalar
+from graphene_django.forms.mutation import DjangoModelFormMutation
 from graphql_jwt.decorators import login_required
 
-from ecommerce.apps.catalogue.models import Option, Product
-from ecommerce.apps.partner.models import StockRecord
+from ecommerce.apps.basket.forms import BasketForm, LineAttributeForm, LineForm
 
-from .types import Basket, BasketType, Line, LineType, LineAttribute
-
-
-class BasketStatusEnum(graphene.Enum):
-    OPEN = "open"
-    MERGED = "merged"
-    SAVED = "saved"
-    FROZEN = "frozen"
-    SUBMITTED = "submitted"
+from .types import Basket, BasketType, Line, LineAttribute, LineType, LineAttributeType
 
 
-class CreateLineMutation(graphene.Mutation):
-    class Arguments:
-        basket_id = graphene.ID(required=True)
-        product_id = graphene.ID(required=True)
-        stockrecord_id = graphene.ID(required=True)
-        quantity = graphene.Int(default_value=1)
-        attributes = graphene.List(graphene.JSONString, required=False)
-
-    line = graphene.Field(LineType)
-
-    @login_required
-    def mutate(
-        self, info, basket_id, product_id, stockrecord_id, quantity, attributes=None
-    ):
-        try:
-            basket = Basket.objects.get(id=basket_id)
-            if basket.owner != info.context.user:
-                raise Exception("You don't have permission to modify this basket")
-
-            product = Product.objects.get(id=product_id)
-            stockrecord = StockRecord.objects.get(id=stockrecord_id)
-
-            line = Line.objects.create(
-                basket=basket,
-                product=product,
-                stockrecord=stockrecord,
-                quantity=quantity,
-                line_reference=f"{product.id}_{stockrecord.id}",  # Simple reference
-            )
-
-            if attributes:
-                for attr in attributes:
-                    option = Option.objects.get(id=attr.get("option_id"))
-                    LineAttribute.objects.create(
-                        line=line, option=option, value=attr.get("value")
-                    )
-
-            return CreateLineMutation(line=line)
-        except (Basket.DoesNotExist, Product.DoesNotExist, StockRecord.DoesNotExist):
-            raise Exception("Invalid basket, product, or stockrecord")
-
-
-class UpdateLineMutation(graphene.Mutation):
-    class Arguments:
-        line_id = graphene.ID(required=True)
-        quantity = graphene.Int(required=True)
-
-    line = graphene.Field(LineType)
-
-    @login_required
-    def mutate(self, info, line_id, quantity):
-        try:
-            line = Line.objects.get(id=line_id)
-            if line.basket.owner != info.context.user:
-                raise Exception("You don't have permission to modify this line")
-
-            line.quantity = quantity
-            line.save()
-            return UpdateLineMutation(line=line)
-        except Line.DoesNotExist:
-            raise Exception("Line not found")
-
-
-class CreateBasketMutation(graphene.Mutation):
-    class Arguments:
-        status = BasketStatusEnum(default_value=BasketStatusEnum.OPEN)
+class BasketsMutation(DjangoModelFormMutation):
+    class Meta:
+        form_class = BasketForm
+        return_field_name = "basket"
+        exclude_fields = ("owner",)  # กำหนด owner จาก context
 
     basket = graphene.Field(BasketType)
+    errors = GenericScalar()
 
+    @classmethod
     @login_required
-    def mutate(self, info, status=None):
-        user = info.context.user
-        basket = Basket.objects.create(owner=user, status=status or Basket.OPEN)
-        return CreateBasketMutation(basket=basket)
+    def mutate_and_get_payload(cls, root, info, **input):
+        basket_id = input.get("id")
+        instance = None
+
+        if basket_id:
+            try:
+                instance = Basket.objects.get(id=basket_id, owner=info.context.user)
+            except ObjectDoesNotExist:
+                raise Exception(_("Basket with id '%s' not found") % basket_id)
+            form = cls.get_form(root, info, instance=instance, **input)
+        else:
+            form = cls.get_form(root, info, **input)
+
+        if form.is_valid():
+            instance = form.save(commit=False)
+            instance.owner = info.context.user
+            instance.save()
+            form.save_m2m()  # บันทึก ManyToManyField (vouchers)
+            return cls(basket=instance)
+        return cls(errors=form.errors.get_json_data())
 
 
-class AddProductToBasketMutation(graphene.Mutation):
-    class Arguments:
-        basket_id = graphene.ID(required=True)
-        product_id = graphene.ID(required=True)
-        quantity = graphene.Int(default_value=1)
+class LineMutation(DjangoModelFormMutation):
+    class Meta:
+        form_class = LineForm
+        return_field_name = "line"
 
-    basket = graphene.Field(BasketType)
+    line = graphene.Field(LineType)
+    errors = GenericScalar()
 
+    @classmethod
     @login_required
-    def mutate(self, info, basket_id, product_id, quantity):
-        try:
-            basket = Basket.objects.get(id=basket_id)
-            if basket.owner != info.context.user:
-                raise Exception("You don't have permission to modify this basket")
+    def mutate_and_get_payload(cls, root, info, **input):
+        line_id = input.get("id")
+        instance = None
 
-            from oscar.apps.catalogue.models import Product
+        if line_id:
+            try:
+                instance = Line.objects.get(id=line_id, basket__owner=info.context.user)
+            except ObjectDoesNotExist:
+                raise Exception(_("Line with id '%s' not found") % line_id)
+            form = cls.get_form(root, info, instance=instance, **input)
+        else:
+            form = cls.get_form(root, info, **input)
 
-            product = Product.objects.get(id=product_id)
+        if form.is_valid():
+            instance = form.save(commit=False)
+            instance.save()
+            return cls(line=instance)
+        return cls(errors=form.errors.get_json_data())
 
-            basket.add_product(product, quantity=quantity)
-            return AddProductToBasketMutation(basket=basket)
-        except Basket.DoesNotExist:
-            raise Exception("Basket or Product not found")
+
+class LineAttributeMutation(DjangoModelFormMutation):
+    class Meta:
+        form_class = LineAttributeForm
+        return_field_name = "line_attribute"
+
+    line_attribute = graphene.Field(LineAttributeType)
+    errors = GenericScalar()
+
+    @classmethod
+    @login_required
+    def mutate_and_get_payload(cls, root, info, **input):
+        attr_id = input.get("id")
+        instance = None
+
+        if attr_id:
+            try:
+                instance = LineAttribute.objects.get(
+                    id=attr_id, line__basket__owner=info.context.user
+                )
+            except ObjectDoesNotExist:
+                raise Exception(_("Line attribute with id '%s' not found") % attr_id)
+            form = cls.get_form(root, info, instance=instance, **input)
+        else:
+            form = cls.get_form(root, info, **input)
+
+        if form.is_valid():
+            instance = form.save(commit=False)
+            instance.save()
+            return cls(line_attribute=instance)
+        return cls(errors=form.errors.get_json_data())
 
 
 class BasketMutation(graphene.ObjectType):
-    create = CreateBasketMutation.Field()
-    add_product_to_basket = AddProductToBasketMutation.Field()
-    create_line = CreateLineMutation.Field()
-    update_line = UpdateLineMutation.Field()
+    create_or_update_basket = BasketsMutation.Field()
+    create_or_update_line = LineMutation.Field()
+    create_or_update_line_attribute = LineAttributeMutation.Field()
