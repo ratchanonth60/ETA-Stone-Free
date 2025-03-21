@@ -1,5 +1,8 @@
 import os
 
+from sentry_sdk.integrations.django import DjangoIntegration
+
+import sentry_sdk
 from django.contrib.messages import constants as messages
 
 from ecommerce import SHARED_APPS, TENANT_APPS
@@ -91,3 +94,14 @@ DEBUG_TOOLBAR_PANELS = [
     "debug_toolbar.panels.profiling.ProfilingPanel",
     "template_profiler_panel.panels.template.TemplateProfilerPanel",
 ]
+
+SENTRY_DSN = os.getenv("SENTRY_DSN")
+
+sentry_sdk.init(
+    dsn=SENTRY_DSN,
+    # Add data like request headers and IP for users,
+    # see https://docs.sentry.io/platforms/python/data-management/data-collected/ for more info
+    integrations=[DjangoIntegration()],
+    traces_sample_rate=1.0,
+    send_default_pii=True,
+)

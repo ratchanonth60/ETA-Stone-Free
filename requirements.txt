@@ -28,3 +28,5 @@ django-timezone-field
 cron-descriptor
 python-crontab
 pycountry
+
+sentry-sdk[django]
