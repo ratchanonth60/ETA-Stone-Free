@@ -1,5 +1,8 @@
 import os
 
+from sentry_sdk.integrations.django import DjangoIntegration
+
+import sentry_sdk
 from django.contrib.messages import constants as messages
 
 from ecommerce import SHARED_APPS, TENANT_APPS
@@ -11,7 +14,7 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__fil
 # See https://docs.djangoproject.com/en/4.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-zj&vjj0q&b=tivqeuidpze37%kdok%ea(k)cjhawg051)(+^7k"
+SECRET_KEY = os.getenv("SECRET_KEY", "")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv("DEBUG", False)
@@ -52,6 +55,11 @@ SITE_ID = 1
 SESSION_ENGINE = "django.contrib.sessions.backends.cached_db"
 SESSION_FILE_PATH = "django.contrib.sessions.backends.file"
 
+AUTHENTICATION_BACKENDS = [
+    "graphql_jwt.backends.JSONWebTokenBackend",
+    "django.contrib.auth.backends.ModelBackend",
+]
+
 # SMTP SETTINGS
 EMAIL_BACKEND = (
     "django.core.mail.backends.locmem.EmailBackend"
@@ -86,3 +94,14 @@ DEBUG_TOOLBAR_PANELS = [
     "debug_toolbar.panels.profiling.ProfilingPanel",
     "template_profiler_panel.panels.template.TemplateProfilerPanel",
 ]
+
+SENTRY_DSN = os.getenv("SENTRY_DSN")
+
+sentry_sdk.init(
+    dsn=SENTRY_DSN,
+    # Add data like request headers and IP for users,
+    # see https://docs.sentry.io/platforms/python/data-management/data-collected/ for more info
+    integrations=[DjangoIntegration()],
+    traces_sample_rate=1.0,
+    send_default_pii=True,
+)

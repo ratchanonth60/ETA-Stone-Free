@@ -1,6 +1,5 @@
 # Filenames
-COMPOSE_FILE_DEV := docker/dev/docker-compose.yml
-COMPOSE_FILE_DEPLOY := docker/deploy/docker-compose.yml
+COMPOSE_FILE_DEV := docker-compose.yml
 
 ifneq (,$(wildcard docker/dev/.env))
     include docker/dev/.env
@@ -41,17 +40,15 @@ env-file:
 check-db: set-compose-file
 	@echo "Database Host: $(POSTGRES_HOST)"
 
-init: set-compose-file
-	@echo "Make Migrating Public database..."
-	$(BASE_COMPOSE_CMD) exec django python manage.py makemigrations
-	@echo "Migrating Public database..."
-	$(BASE_COMPOSE_CMD) exec django python manage.py migrate
-	@echo "Creating localhost tenant ..."
-	$(BASE_COMPOSE_CMD) exec django python manage.py create_tenant --schema_name=localhost --name=localhost --domain-domain=localhost --domain-is_primary=True --no-input
-	@echo "Migrating localhost database..."
-	$(BASE_COMPOSE_CMD) exec django python manage.py tenant_command migrate -s localhost
-	@echo "Creates Countries database..."
-	$(BASE_COMPOSE_CMD) exec django python manage.py tenant_command init_countries -s localhost
+init: set-compose-file ## Init project and create superuser
+	@echo "Initializing project..."
+	@$(BASE_COMPOSE_CMD) exec django sh -c "\
+		python manage.py makemigrations && \
+		python manage.py migrate && \
+		python manage.py create_tenant --schema_name=localhost --name=localhost --domain-domain=localhost --domain-is_primary=True --no-input && \
+		python manage.py tenant_command migrate -s localhost && \
+		python manage.py tenant_command init_countries -s localhost && \
+		python manage.py create_tenant_user localhost admin admin@example.com admin123 --superuser"
 
 # DOCKER TASKS
 backup: set-compose-file ## Backup tenant databases
@@ -137,9 +134,6 @@ list:
 login-docker:
 	docker login -u $(DOCKERHUB_USERNAME) --password-stdin
 
-deploy: build up ## Deploy application
-	$(BASE_COMPOSE_CMD) up -d nginx-proxy django-deploy acme-companion
-	@echo "Application deployed successfully!"
 
 define service-start
 	$(BASE_COMPOSE_CMD) up -d $(1)

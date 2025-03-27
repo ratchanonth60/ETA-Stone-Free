@@ -5,8 +5,7 @@ import os
 
 DATABASES = {
     "default": {
-        'ENGINE': 'django_tenants.postgresql_backend',
-
+        "ENGINE": "django_tenants.postgresql_backend",
         # "ENGINE": os.getenv("ENGINE"),
         "NAME": os.getenv("POSTGRES_DB"),
         "USER": os.getenv("POSTGRES_USER"),

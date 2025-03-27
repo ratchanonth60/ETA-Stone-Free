@@ -1,3 +1,4 @@
+from django.core.serializers.json import DjangoJSONEncoder
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 from oscar.apps.basket.abstract_models import (
@@ -9,11 +10,10 @@ from oscar.core.compat import AUTH_USER_MODEL
 from oscar.core.utils import get_default_currency
 from oscar.models.fields.slugfield import SlugField
 
-from ecommerce.core.defults import STATUS_CHOICES_BASKET
+from ecommerce.core.defults import OPEN, SAVED, STATUS_CHOICES_BASKET
 
 
 class Basket(AbstractBasket):
-    STATUS_CHOICES = STATUS_CHOICES_BASKET
     owner = models.ForeignKey(
         AUTH_USER_MODEL,
         null=True,
@@ -22,7 +22,26 @@ class Basket(AbstractBasket):
         verbose_name=_("Owner"),
     )
 
-    class Meta:
+    STATUS_CHOICES = STATUS_CHOICES_BASKET
+    status = models.CharField(
+        _("Status"), max_length=128, default=OPEN, choices=STATUS_CHOICES
+    )
+
+    # A basket can have many vouchers attached to it.  However, it is common
+    # for sites to only allow one voucher per basket - this will need to be
+    # enforced in the project's codebase.
+    vouchers = models.ManyToManyField(
+        "voucher.Voucher", verbose_name=_("Vouchers"), blank=True
+    )
+
+    date_created = models.DateTimeField(_("Date created"), auto_now_add=True)
+    date_merged = models.DateTimeField(_("Date merged"), null=True, blank=True)
+    date_submitted = models.DateTimeField(_("Date submitted"), null=True, blank=True)
+
+    # Only if a basket is in one of these statuses can it be edited
+    editable_statuses = (OPEN, SAVED)
+
+    class Meta(AbstractBasket.Meta):
         ordering = ["-id"]
 
 
@@ -84,3 +103,4 @@ class LineAttribute(AbstractLineAttribute):
     option = models.ForeignKey(
         "catalogue.Option", on_delete=models.CASCADE, verbose_name=_("Option")
     )
+    value = models.JSONField(_("Value"), encoder=DjangoJSONEncoder)

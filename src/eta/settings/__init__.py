@@ -1,16 +1,17 @@
-from .tenant import *  # isort:skip
 from .auth import *  # noqa: F403
-from .base import *  # noqa: F403
+from .aws import *  # noqa: F403
+from .base import *  # noqa: F403  # Load base settings (including INSTALLED_APPS) first
 from .caching import *  # noqa: F403
 from .celery_conf import *  # noqa: F403
-from .db import *  # noqa: F403
+from .db import *  # noqa: F403  # DATABASES should come after base
+from .graphql import *  # noqa: F403
 from .middleware import *  # noqa: F403
 from .oscar import *  # noqa: F403
+from .rest_framework import *  # noqa: F403
 from .static import *  # noqa: F403
 from .stripe import *  # noqa: F403
+from .tenant import *  # noqa: F403  # Tenant settings last to override if needed
 from .timezone import *  # noqa: F403
-
-from .rest_framework import *  # isort:skip
 
 LOGGING = {
     "version": 1,

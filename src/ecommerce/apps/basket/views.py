@@ -4,7 +4,7 @@ from django import shortcuts
 from django.contrib import messages
 from django.contrib.sessions.serializers import JSONSerializer
 from django.core.exceptions import ObjectDoesNotExist
-from django.http import JsonResponse, QueryDict
+from django.http import HttpResponseRedirect, JsonResponse, QueryDict
 from django.shortcuts import redirect
 from django.template.loader import render_to_string
 from django.urls import reverse
@@ -466,26 +466,48 @@ class VoucherAddView(FormView):
 
 
 class VoucherRemoveView(View):
-    voucher_model = Voucher
-    remove_signal = voucher_removal
+    voucher_model = Voucher  # type: ignore
+    remove_signal = voucher_removal  # type: ignore
     http_method_names = ["post"]
 
-    def post(self, request, *args, **kwargs):
-        response = redirect("basket:summary")
+    def post(self, request, *args, **kwargs) -> HttpResponseRedirect:
+        """
+        Handle POST request to remove a voucher from the basket.
 
-        voucher_id = kwargs["pk"]
-        if not request.basket.id:
-            # Hacking attempt - the basket must be saved for it to have
-            # a voucher in it.
-            return response
+        Args:
+            request: The HTTP request object.
+            *args: Additional positional arguments.
+            **kwargs: Additional keyword arguments, including 'pk' for voucher ID.
+
+        Returns:
+            HttpResponseRedirect: Redirects to 'basket:summary' with appropriate messages.
+        """
+        voucher_id: str = kwargs["pk"]
+        basket = request.basket
+
+        # Check if basket exists and is saved
+        if not basket.id:
+            messages.error(request, _("Cannot remove voucher: Basket is not saved."))
+            return self._redirect_to_summary()
+
+        # Attempt to remove voucher
         try:
-            voucher = request.basket.vouchers.get(id=voucher_id)
-            request.basket.vouchers.remove(voucher)
-            self.remove_signal.send(sender=self, basket=request.basket, voucher=voucher)
+            voucher = basket.vouchers.get(id=voucher_id)
+            basket.vouchers.remove(voucher)
+            self._notify_voucher_removed(basket, voucher)
             messages.info(request, _("Voucher '%s' removed from basket") % voucher.code)
         except ObjectDoesNotExist:
             messages.error(request, _("No voucher found with id '%s'") % voucher_id)
-        return response
+
+        return self._redirect_to_summary()
+
+    def _redirect_to_summary(self) -> HttpResponseRedirect:
+        """Helper method to redirect to basket summary page."""
+        return redirect("basket:summary")
+
+    def _notify_voucher_removed(self, basket, voucher) -> None:
+        """Helper method to send removal signal."""
+        self.remove_signal.send(sender=self, basket=basket, voucher=voucher)
 
 
 class SavedView(ModelFormSetView):

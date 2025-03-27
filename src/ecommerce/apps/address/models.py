@@ -2,22 +2,14 @@ from django.conf import settings
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 from django.utils.translation import pgettext_lazy
-from oscar.apps.address.abstract_models import (AbstractCountry,
-                                                AbstractUserAddress)
+from oscar.apps.address.abstract_models import AbstractCountry, AbstractUserAddress
 from oscar.core.compat import AUTH_USER_MODEL
 from oscar.models.fields import UppercaseCharField
 
+from ecommerce.core.defults import TITLE_CHOICES
+
 
 class UserAddress(AbstractUserAddress):
-    MR, MISS, MRS, MS, DR = ("Mr", "Miss", "Mrs", "Ms", "Dr")
-    TITLE_CHOICES = (
-        (MR, _("Mr")),
-        (MISS, _("Miss")),
-        (MRS, _("Mrs")),
-        (MS, _("Ms")),
-        (DR, _("Dr")),
-    )
-
     POSTCODE_REQUIRED = "postcode" in settings.OSCAR_REQUIRED_ADDRESS_FIELDS
 
     user = models.ForeignKey(

@@ -89,3 +89,13 @@ CATEGORY_COMMUNICATION_CHOICES = (
     (ORDER_RELATED, _("Order related")),
     (USER_RELATED, _("User related")),
 )
+
+
+MR, MISS, MRS, MS, DR = ("Mr", "Miss", "Mrs", "Ms", "Dr")
+TITLE_CHOICES = (
+    (MR, _("Mr")),
+    (MISS, _("Miss")),
+    (MRS, _("Mrs")),
+    (MS, _("Ms")),
+    (DR, _("Dr")),
+)

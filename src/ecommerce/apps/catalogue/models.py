@@ -1,4 +1,5 @@
 from django.core.exceptions import ObjectDoesNotExist
+from django.core.validators import RegexValidator
 from django.db import models
 from django.utils.functional import cached_property
 from django.utils.translation import gettext_lazy as _
@@ -17,6 +18,7 @@ from oscar.apps.catalogue.abstract_models import (
     AbstractProductRecommendation,
 )
 from oscar.core.decorators import deprecated
+from oscar.core.validators import non_python_keyword
 from oscar.models.fields import AutoSlugField, NullCharField
 from oscar.models.fields.slugfield import SlugField
 from oscar.utils.models import get_image_upload_path
@@ -167,7 +169,9 @@ class Product(AbstractProduct):
         through="ProductRecommendation",
         blank=True,
         verbose_name=_("Recommended products"),
-        help_text=_("These are products that are recommended to accompany the main product."),
+        help_text=_(
+            "These are products that are recommended to accompany the main product."
+        ),
     )
 
     # Denormalised product rating - used by reviews app.
@@ -197,6 +201,27 @@ class Product(AbstractProduct):
         ranges can include child products as well. That make this method useless.
         """
         return self.is_discountable
+
+    def primary_image(self):
+        """
+        Returns the primary image for a product. Usually used when one can
+        only display one product image, e.g. in a list of products.
+        """
+        images = self.get_all_images()
+        ordering = self.images.model.Meta.ordering
+        if not ordering or ordering[0] != "display_order":
+            # Only apply order_by() if a custom model doesn't use default
+            # ordering. Applying order_by() busts the prefetch cache of
+            # the ProductManager
+            images = images.order_by("display_order")
+        try:
+            return images[0]
+        except IndexError:
+            # We return a dict with fields that mirror the key properties of
+            # the ProductImage class so this missing image can be used
+            # interchangeably in templates.  Strategy pattern ftw!
+            missing_image = self.get_missing_image()
+            return {"original": missing_image.name, "caption": "", "is_missing": True}
 
 
 class ProductRecommendation(AbstractProductRecommendation):
@@ -234,6 +259,38 @@ class ProductAttribute(AbstractProductAttribute):
         verbose_name=_("Product type"),
     )
     name = models.CharField(_("Name"), max_length=128)
+    code = models.SlugField(
+        _("Code"),
+        max_length=128,
+        validators=[
+            RegexValidator(
+                regex=r"^[a-zA-Z_][0-9a-zA-Z_]*$",
+                message=_(
+                    "Code can only contain the letters a-z, A-Z, digits, "
+                    "and underscores, and can't start with a digit."
+                ),
+            ),
+            non_python_keyword,
+        ],
+    )
+
+    type = models.CharField(
+        choices=TYPE_CHOICES,
+        default=TYPE_CHOICES[0][0],
+        max_length=20,
+        verbose_name=_("Type"),
+    )
+
+    option_group = models.ForeignKey(
+        "catalogue.AttributeOptionGroup",
+        blank=True,
+        null=True,
+        on_delete=models.CASCADE,
+        related_name="product_attributes",
+        verbose_name=_("Option Group"),
+        help_text=_('Select an option group if using type "Option" or "Multi Option"'),
+    )
+    required = models.BooleanField(_("Required"), default=False)
 
     def _get_value_obj(self, product, value):
         try:

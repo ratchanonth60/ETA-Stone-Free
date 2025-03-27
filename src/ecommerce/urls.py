@@ -1,24 +1,15 @@
 from django.apps import apps
+from django.conf import settings
 from django.conf.urls import i18n
 from django.conf.urls.i18n import i18n_patterns
 from django.contrib import admin
 from django.shortcuts import render
 from django.urls import include, path
+from graphene_django.views import GraphQLView
+
+from .graphQL.schema import schema
 
 admin.autodiscover()
-
-# schema_view = get_schema_view(
-#     openapi.Info(
-#         title="Snippets API",
-#         default_version="v1",
-#         description="Test description",
-#         terms_of_service="https://www.google.com/policies/terms/",
-#         contact=openapi.Contact(email="contact@snippets.local"),
-#         license=openapi.License(name="BSD License"),
-#     ),
-#     public=True,
-#     permission_classes=(permissions.AllowAny,),
-# )
 
 
 def handler403(request, exception):
@@ -59,5 +50,9 @@ urlpatterns = [
 urlpatterns += i18n_patterns(
     path("", include(apps.get_app_config("ecommerce").urls[0])),
     path("api/<version>/", include(apps.get_app_config("api").urls[0])),
+    path(
+        "graphql/",
+        GraphQLView.as_view(graphiql=bool(settings.DEBUG), schema=schema),
+    ),
     prefix_default_language=False,
 )

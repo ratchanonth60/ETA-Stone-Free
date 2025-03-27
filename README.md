@@ -1,6 +1,6 @@
 # ETA
-
-
+---
+[![Quality Gate Status](http://13.214.34.2:9000/api/project_badges/measure?project=ETA-Stone-Free&metric=alert_status&token=sqb_c8e1240511ed0de00fda030d85b3b9b9ec349b6a)](http://13.214.34.2:9000/dashboard?id=ETA-Stone-Free)
 ## Getting Started
 
 This project is a sophisticated e-commerce platform built on the powerful Django framework. It is designed to deliver a seamless and scalable online shopping experience, catering to businesses of all sizes. The platform integrates a wide array of functionalities essential for modern e-commerce websites.

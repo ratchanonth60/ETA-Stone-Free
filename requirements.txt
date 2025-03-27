@@ -11,3 +11,22 @@ djangorestframework-simplejwt
 drf-yasg
 
 flake8
+
+django-graphql-jwt
+graphene-django
+ipython
+django-storages[s3]
+debugpy
+django-tenants
+sentry-sdk[django]
+raven
+django-oscar[sorl-thumbnail]
+easy-thumbnails
+stripe
+django_webtest
+django-timezone-field
+cron-descriptor
+python-crontab
+pycountry
+
+sentry-sdk[django]
